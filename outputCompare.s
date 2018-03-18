@@ -58,7 +58,9 @@ setupOC2:
     # OC2CON<3> = 0 (set timer 2 as the base timer for the PWM signal)
     # OC2CON<2:0> = 0b110 (setup output compare in PWM mode without fault)
     LI $t0, 0b1000000000000110
-    SW $t0, OC1CONSET
+    SW $t0, OC2CONSET
+    
+    jr $ra
 .end setupOC2
     
 .endif
