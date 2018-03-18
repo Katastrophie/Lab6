@@ -1,7 +1,6 @@
 .ifndef BUTTONS_S
 BUTTONS_S:
 
-.include "LED.s"
     
 # Buttons Library
 # This library only works for Digilent ProMX795F512L Board
