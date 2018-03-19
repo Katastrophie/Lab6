@@ -34,34 +34,34 @@ setupOC1:
     JR $ra
 .end setupOC1  
 
-.ent setupOC2
-setupOC2:
+.ent setupOC3
+setupOC3:
 
-    # OC2R, OC2RS, OC2CON
-    # OC2 is on pin RD01, (Digilent JD-07)
+    # OC3R, OC3RS, OC3CON
+    # OC3 is on pin RD02, (Digilent JD-08)
 
-    # the H-bridge module will have JD-10 (RD12) be the dir pin
-    # and JD-07 (RD01) be the en pin (which should be driven by the PWM signal)
+    # the H-bridge module will have JD-07 (RD01) be the dir pin
+    # and JD-08 (RD02) be the en pin (which should be driven by the PWM signal)
 
     # Setting dir and en pins as outputs
-    LI $t0, 0b1000000000010
+    LI $t0, 0b110
     SW $t0, TRISDCLR
     SW $t0, LATDCLR
 
     # Clear all associated hardware registers
-    SW $zero, OC2CON
-    SW $zero, OC2R
-    SW $zero, OC2RS
+    SW $zero, OC3CON
+    SW $zero, OC3R
+    SW $zero, OC3RS
 
     # OC2CON<15> = 1 (turn on the output compare module)
     # OC2CON<5> = 0 (setting the output compare as a 16-bit value)
     # OC2CON<3> = 0 (set timer 2 as the base timer for the PWM signal)
     # OC2CON<2:0> = 0b110 (setup output compare in PWM mode without fault)
     LI $t0, 0b1000000000000110
-    SW $t0, OC2CONSET
+    SW $t0, OC3CONSET
     
     jr $ra
-.end setupOC2
+.end setupOC3
     
 .endif
 
