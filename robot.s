@@ -1,6 +1,4 @@
 
-
-.include "LED.s"
     .ifndef ROBOMAL_S
 ROBOMAL_S:
   
@@ -207,48 +205,48 @@ execute:
 
     # "Turn left" - No robot, so LED4 turns on. 
     left:
-	li $a0, 0b1000
-	jal setLEDs
-	jal oneSecond # displays the LED for roughly one second
-	
-	j end
+# 	li $a0, 0b1000
+# 	jal setLEDs
+# 	jal oneSecond # displays the LED for roughly one second
+# 	
+# 	j end
 
     # "Turn right" - No robot, so LED1 turns on.
     right:
-	li $a0, 0b0001
-	jal setLEDs
-	jal oneSecond # Displays the LED for roughly one second
-	
-	j end
+# 	li $a0, 0b0001
+# 	jal setLEDs
+# 	jal oneSecond # Displays the LED for roughly one second
+# 	
+# 	j end
 
     # "Go forward" - No robot, so LED 2 and 3 flash.
     forwards:
-	li $a0, 0b0110 
-	jal setLEDs
-	jal oneSecond # displays for one second
-	li $t0, 0xF000
-	sw $t0, laTGCLR
-	jal oneSecond # turns off for one second
-	jal setLEDs
-	jal oneSecond # displays for one second
-	
-	j end
+# 	li $a0, 0b0110 
+# 	jal setLEDs
+# 	jal oneSecond # displays for one second
+# 	li $t0, 0xF000
+# 	sw $t0, laTGCLR
+# 	jal oneSecond # turns off for one second
+# 	jal setLEDs
+# 	jal oneSecond # displays for one second
+# 	
+# 	j end
 
     # "Go backwards" - No robot, so LED2 and 2 turn on.
     backwards:
-	li $a0, 0b0110
-	jal setLEDs
-	jal oneSecond # displays for one second
-	
-	j end
+# 	li $a0, 0b0110
+# 	jal setLEDs
+# 	jal oneSecond # displays for one second
+# 	
+# 	j end
 
     # "Break" - No robot, so all LEDs turn on.
     breaking:
-	li $a0, 0b1111
-	jal setLEDs
-	jal oneSecond
-	
-	j end
+# 	li $a0, 0b1111
+# 	jal setLEDs
+# 	jal oneSecond
+# 	
+# 	j end
    
     end:
     
@@ -256,5 +254,6 @@ execute:
     addi $sp, $sp, 4 # put back on stack
     
     jr $ra
-.end execut
+.end execute
 .endif
+    

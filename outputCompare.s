@@ -40,8 +40,8 @@ setupOC2:
     # OC2R, OC2RS, OC2CON
     # OC2 is on pin RD01, (Digilent JD-07)
 
-    # the H-bridge module will have JD-07 (RD01) be the dir pin
-    # and JD-10 (RD12) be the en pin (which should be driven by the PWM signal)
+    # the H-bridge module will have JD-10 (RD12) be the dir pin
+    # and JD-07 (RD01) be the en pin (which should be driven by the PWM signal)
 
     # Setting dir and en pins as outputs
     LI $t0, 0b1000000000010

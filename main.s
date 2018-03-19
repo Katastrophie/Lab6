@@ -1,6 +1,7 @@
 .include "timer.s"
 .include "outputCompare.s"
 .include "buttons.s"
+# .include "robot.s"
         
 .global main
     
@@ -18,7 +19,7 @@ main:
     
     
     loop:
-    
+	# jal runProgram # run Robot
 	jal getButtons
 	beq $v0, 0b001, btn1pressed
 	beq $v0, 0b010, btn2pressed
@@ -32,13 +33,9 @@ main:
 	    # duty cycle % = OC1RS / (PR + 1)
 	    # OC1RS = (duty cycle %) * (PR + 1)
 	    # OC1RS = 5% * (249 + 1)
-	    LW $t0, OC1RS
-	    ADDI $t0, $t0, 25
+	    LI $t0, 150
 	    SW $t0, OC1RS
-	    
-	    LW $t0, OC2RS
-	    ADDI $t0, $t0, 25
-	    sw $t0, OC2RS 
+	    SW $t0, OC2RS
 	    
 	    j waitfordepressed
 	btn2pressed:
