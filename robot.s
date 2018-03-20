@@ -1,4 +1,4 @@
-
+.include "outputCompare.s"
     .ifndef ROBOMAL_S
 ROBOMAL_S:
   
@@ -8,7 +8,7 @@ ROBOMAL_S:
  # The most significant 8 bits must be in Hexadecimal and represent the operation 
  # code followed by zeros. The least significant bits 16 bits are the roboMAL
  # operands in hexadecimal. The instruction must be 32 bits long.
- ROBO_Instruction: .word 0x28000000, 0x29000000, 0x2A000000, 0x2B000000, 0x2C000000
+ ROBO_Instruction: .word 0x28000000, 0x2C000000, 0x33000000# , 0x29000000, 0x2A000000, 0x2B000000, 
  
  # This array stores variables, it can be in any number format.
  ROBO_Data: .word 80, 5, 4
@@ -201,7 +201,10 @@ execute:
 
     # End of the program, robot stops.
     halt:
-	j halt # program stuck in a loop
+	li $t0, 0
+	SW $t0, OC1RS
+	SW $t0, OC3RS
+	j end
 
     # "Turn left" - No robot, so LED4 turns on. 
     left:
@@ -219,34 +222,50 @@ execute:
 # 	
 # 	j end
 
-    # "Go forward" - No robot, so LED 2 and 3 flash.
+    # "Go forward" 
     forwards:
-# 	li $a0, 0b0110 
-# 	jal setLEDs
-# 	jal oneSecond # displays for one second
-# 	li $t0, 0xF000
-# 	sw $t0, laTGCLR
-# 	jal oneSecond # turns off for one second
-# 	jal setLEDs
-# 	jal oneSecond # displays for one second
-# 	
-# 	j end
+	li $a0, 1
+	jal setupOC1
+	jal setupOC3
+	
+	j speed
 
-    # "Go backwards" - No robot, so LED2 and 2 turn on.
+    # "Go backwards" 
     backwards:
-# 	li $a0, 0b0110
-# 	jal setLEDs
-# 	jal oneSecond # displays for one second
-# 	
-# 	j end
-
-    # "Break" - No robot, so all LEDs turn on.
+	
+	li $a0, 0
+	jal setupOC1
+	jal setupOC3
+	
+ 	
+ 	j speed
+    speed:
+    beq $s4, 0, slow
+	beq $s4, 1, medium
+	beq $s4, 2, fast
+	slow:
+	    li $t0, 62 # 25% duty
+	j set
+	medium:
+	    LI $t0, 125 # 50% duty
+	j set
+	fast:
+	    li $t0, 250 # 100% duty
+	set:
+	SW $t0, OC1RS
+	SW $t0, OC3RS
+	j end
+    
     breaking:
-# 	li $a0, 0b1111
-# 	jal setLEDs
-# 	jal oneSecond
-# 	
-# 	j end
+	LW $t0, OC1RS
+	ADDI $t0, $t0, -25
+	SW $t0, OC1RS
+	
+	LW $t0, OC3RS
+	ADDI $t0, $t0, -25
+	SW $t0, OC3RS
+	
+	j end
    
     end:
     

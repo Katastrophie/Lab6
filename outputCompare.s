@@ -10,6 +10,9 @@ setupOC1:
     # and JD-02 (RD00) be the en pin (which should be driven by the PWM signal)
     
     # Setting dir and en pins as outputs
+    move $t0, $a0 
+    sll $t0, 9
+    and $t0, 0b1
     LI $t0, 0b1000000001
     SW $t0, TRISDCLR
     SW $t0, LATDCLR
@@ -44,7 +47,9 @@ setupOC3:
     # and JD-08 (RD02) be the en pin (which should be driven by the PWM signal)
 
     # Setting dir and en pins as outputs
-    LI $t0, 0b110
+    move $t0, $a0 
+    sll $t0, 1
+    and $t0, 0b100
     SW $t0, TRISDCLR
     SW $t0, LATDCLR
 
