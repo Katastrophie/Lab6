@@ -1,31 +1,34 @@
 .include "outputCompare.s"
 .include "timer.s"
-    .ifndef ROBOMAL_S
+
+.ifndef ROBOMAL_S
 ROBOMAL_S:
   
 .data
     
- # Harvard Architecture RoboMAL
- # The most significant 8 bits must be in Hexadecimal and represent the operation 
- # code followed by zeros. The least significant bits 16 bits are the roboMAL
- # operands in hexadecimal. The instruction must be 32 bits long.
- ROBO_Instruction: .word 0x2A000001, 0x2C000011, 0x2B000011, 0x33000000# , 0x29000000, 0x2A000000, 0x2B000000, 
- 
- # This array stores variables, it can be in any number format.
- ROBO_Data: .word 80, 5, 4
+# Harvard Architecture RoboMAL
+# The most significant 8 bits must be in Hexadecimal and represent the operation 
+# code followed by zeros. The least significant bits 16 bits are the roboMAL
+# operands in hexadecimal. The instruction must be 32 bits long.
+ROBO_Instruction: .word 0x2A000001, 0x2D00001E, 0x33000000 # , 0x2C000011, 0x2B000011, 0x33000000# , 0x29000000, 0x2A000000, 0x2B000000, 
+# The above instructions tell the robot to go forward, 
+# continue the last operation for approximately 30 tenths of a second (3 sec), 
+# then halt the program.
     
+
+# This array stores variables, it can be in any number format.
+ROBO_Data: .word 80, 5, 4
+
 .text
 
-
- 
 # ******************************************************************************
 # * Function Name:	 runProgram                                                                                                       
 # * Description:	 This function runs the RoboMAL program by first 
 # *			 initializing all my simulation registers. It runs the 
 # *			 program until the last operation is performed.
 # *                                                                                                                         
-# * Inputs:		 None                                                                                                                 *
-# * Outputs:		 None                                                                                                             
+# * Inputs:		 None
+# * Outputs:		 None
 # *                                                                                                                         
 # * Errors:		 If the user doesn't change the end operation in the 
 # *			 code with the highest 32 bits of the last operation in 
@@ -53,11 +56,11 @@ runProgram:
     move $s1, $zero # Program Counter
     move $s2, $zero # Instruction Register
     move $s3, $zero # Opcode Register
-    move $s4, $zero # Operad Rehister
+    move $s4, $zero # Operand Register
     
 Roboloop:
     jal simulateClockCycle
-    beq $s3, 0x2C00, endProgram
+    beq $s3, 0x3300, endProgram # Halt Instruction Received, Return to Main
     j Roboloop
 endProgram:
     
@@ -198,61 +201,107 @@ execute:
     beq $s3, 0x2A00, forwards
     beq $s3, 0x2B00, backwards
     beq $s3, 0x2C00, breaking
+    beq $s3, 0x2D00, continue       # Allows continuing of the last command
+                                    # for a set amount of tenths of a second.
     
 
     # End of the program, robot stops.
     halt:
-	li $t0, 0
-	SW $t0, OC1RS
-	SW $t0, OC3RS
+	sw $zero, OC1RS
+	sw $zero, OC3RS
 	j end
 
     # "Turn left" - No robot, so LED4 turns on. 
     left:
-# 	li $a0, 0b1000
-# 	jal setLEDs
-# 	jal oneSecond # displays the LED for roughly one second
-# 	
-# 	j end
+        # Need to set DC% of Left Wheel < DC% of Right Wheel
+        li $a0, 100 # Left Wheel
+        li $a1, 200 # Right Wheel
+        jal forwardOCMs
+	
+	j end
 
     # "Turn right" - No robot, so LED1 turns on.
     right:
-# 	li $a0, 0b0001
-# 	jal setLEDs
-# 	jal oneSecond # Displays the LED for roughly one second
-# 	
-# 	j end
+        # Need to set DC% of Right Wheel < DC% of Left Wheel
+        li $a0, 200 # Left Wheel
+        li $a1, 100 # Right Wheel
+        jal forwardOCMs
+
+        j end
 
     # "Go forward" 
     forwards:
-	jal setupOC1
-	jal setupOC3
-	
-	j speed
+# 	jal setupOC1
+# 	jal setupOC3back
+        
+        # Kick Start Forward Drive
+        li $a0, 249 # 100% duty
+        li $a1, 249
+        jal forwardOCMs
+
+        jal startTMR1
+        li $t0, 10   # Wait for 1 sec.
+        waitForTMRFWD:
+            jal getTMR1Tenths
+            bne $t0, $v0, waitForTMRFWD
+        jal stopTMR1
+        
+        # Now set desired speed
+        beq $s4, 0, slowFWD
+	beq $s4, 1, mediumFWD
+	beq $s4, 2, fastFWD
+	slowFWD:
+	    li $a0, 62 # 25% duty
+            li $a1, 62
+
+            j setFWD
+	mediumFWD:
+	    li $a0, 125 # 50% duty
+            li $a1, 125
+            j setFWD
+	fastFWD:
+	    li $a0, 249 # 100% duty
+            li $a1, 249
+	setFWD:
+        jal forwardOCMs
+
+	j end
 
     # "Go backwards" 
     backwards:
-	
-	jal setupOC1back
-	jal setupOC3back
-	
- 	
- 	j speed
-    speed:
-    beq $s4, 0, slow
-	beq $s4, 1, medium
-	beq $s4, 2, fast
-	slow:
-	    li $t0, 62 # 25% duty
-	j set
-	medium:
-	    LI $t0, 125 # 50% duty
-	j set
-	fast:
-	    li $t0, 250 # 100% duty
-	set:
-	SW $t0, OC1RS
-	SW $t0, OC3RS
+# 	jal setupOC1back
+# 	jal setupOC3
+
+	# Kick Start Backward Drive
+        li $a0, 249 # 100% duty
+        li $a1, 249
+        jal backwardOCMs
+
+        jal startTMR1
+        li $t0, 1   # Wait for 0.1 sec.
+        waitForTMRRev:
+            jal getTMR1Tenths
+            beqz $v0, waitForTMRRev
+        jal stopTMR1
+        
+        # Now set desired speed
+        beq $s4, 0, slowREV
+	beq $s4, 1, mediumREV
+	beq $s4, 2, fastREV
+	slowREV:
+	    li $a0, 62 # 25% duty
+            li $a1, 62
+            j setREV
+	mediumREV:
+	    li $a0, 125 # 50% duty
+            li $a1, 125
+            j setREV
+	fastREV:
+	    li $a0, 249 # 100% duty
+            li $a1, 249
+	setREV:
+        jal backwardOCMs
+
 	j end
     
     breaking:
@@ -260,18 +309,27 @@ execute:
 	move $zero, $t1
 	breakrobot:
 	beq $t1, $s4, end
-	LW $t0, OC1RS
-	ADDI $t0, $t0, -25
-	SW $t0, OC1RS
+	lw $t0, OC1RS
+	addi $t0, $t0, -25
+	sw $t0, OC1RS
 	
-	LW $t0, OC3RS
-	ADDI $t0, $t0, -25
-	SW $t0, OC3RS
+	lw $t0, OC3RS
+	addi $t0, $t0, -25
+	sw $t0, OC3RS
 	add $t1, 1
 	j breakrobot
 	
 	j end
    
+    continue:
+        jal startTMR1
+        waitForContinue:
+            jal getTMR1Tenths
+            bne $s4, $v0, waitForContinue
+        jal stopTMR1
+
+        j end
+    
     end:
     
     lw $ra, 0($sp)
@@ -279,5 +337,5 @@ execute:
     
     jr $ra
 .end execute
+
 .endif
-    

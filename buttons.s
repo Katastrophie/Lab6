@@ -15,11 +15,11 @@ BUTTONS_S:
 setupButtons:
     # Buttons 1 & 2 are in RG06 & RG07
     LI $t0, 0xC0	# TRISGSET = 0b11000000;
-    SW $t0, TRISGSET			
+    SW $t0, TRISGSET
 
     # Button 3 is in RA00
     LI $t0, 0x1		# TRISASET = 0b1;
-    SW $t0, TRISASET			
+    SW $t0, TRISASET
 
     # DDPCONbits.JTAGEN = 0; // Disable JTAG controller so we can use button 3
     LW $t0, DDPCON	    # Load the current contents of DDPCON Register
