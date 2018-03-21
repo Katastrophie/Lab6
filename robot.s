@@ -1,4 +1,5 @@
 .include "outputCompare.s"
+.include "timer.s"
     .ifndef ROBOMAL_S
 ROBOMAL_S:
   
@@ -8,7 +9,7 @@ ROBOMAL_S:
  # The most significant 8 bits must be in Hexadecimal and represent the operation 
  # code followed by zeros. The least significant bits 16 bits are the roboMAL
  # operands in hexadecimal. The instruction must be 32 bits long.
- ROBO_Instruction: .word 0x28000000, 0x2C000000, 0x33000000# , 0x29000000, 0x2A000000, 0x2B000000, 
+ ROBO_Instruction: .word 0x2A000001, 0x2C000011, 0x2B000011, 0x33000000# , 0x29000000, 0x2A000000, 0x2B000000, 
  
  # This array stores variables, it can be in any number format.
  ROBO_Data: .word 80, 5, 4
@@ -224,7 +225,6 @@ execute:
 
     # "Go forward" 
     forwards:
-	li $a0, 1
 	jal setupOC1
 	jal setupOC3
 	
@@ -233,9 +233,8 @@ execute:
     # "Go backwards" 
     backwards:
 	
-	li $a0, 0
-	jal setupOC1
-	jal setupOC3
+	jal setupOC1back
+	jal setupOC3back
 	
  	
  	j speed
@@ -257,6 +256,10 @@ execute:
 	j end
     
     breaking:
+	jal startTMR2
+	move $zero, $t1
+	breakrobot:
+	beq $t1, $s4, end
 	LW $t0, OC1RS
 	ADDI $t0, $t0, -25
 	SW $t0, OC1RS
@@ -264,6 +267,8 @@ execute:
 	LW $t0, OC3RS
 	ADDI $t0, $t0, -25
 	SW $t0, OC3RS
+	add $t1, 1
+	j breakrobot
 	
 	j end
    
