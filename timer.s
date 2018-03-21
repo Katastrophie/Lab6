@@ -57,6 +57,24 @@ getTMR1Tenths:
     jr $ra
 .end getTMR1Tenths
 
+
+# Waits for a specified amount of time given in $a0
+.ent waitForTime
+waitForTime:
+    addi $sp, $sp, -4
+    sw   $ra, 0($sp)
+
+    jal startTMR1
+    keepWaiting:
+        jal getTMR1Tenths
+        bne $a0, $v0, keepWaiting
+    jal stopTMR1
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    
+.end waitForTime
+
 # Stop Timer1 and clear how many tenths of seconds have elapsed.
 .ent stopTMR1
 stopTMR1:

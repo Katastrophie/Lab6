@@ -19,6 +19,11 @@ ROBO_Instruction: .word 0x2A000001, 0x2D00001E, 0x33000000 # , 0x2C000011, 0x2B0
 # This array stores variables, it can be in any number format.
 ROBO_Data: .word 80, 5, 4
 
+# These are wheel speeds
+slow:   .word 175   # 70% Duty Cycle
+medium: .word 212   # 85% Duty Cycle
+fast:   .word 249   # 100% Duty Cycle
+
 .text
 
 # ******************************************************************************
@@ -214,8 +219,8 @@ execute:
     # "Turn left" - No robot, so LED4 turns on. 
     left:
         # Need to set DC% of Left Wheel < DC% of Right Wheel
-        li $a0, 100 # Left Wheel
-        li $a1, 200 # Right Wheel
+        lw $a0, medium # Left Wheel
+        lw $a1, fast # Right Wheel
         jal forwardOCMs
 	
 	j end
@@ -223,24 +228,21 @@ execute:
     # "Turn right" - No robot, so LED1 turns on.
     right:
         # Need to set DC% of Right Wheel < DC% of Left Wheel
-        li $a0, 200 # Left Wheel
-        li $a1, 100 # Right Wheel
+        lw $a0, fast # Left Wheel
+        lw $a1, medium # Right Wheel
         jal forwardOCMs
 
         j end
 
     # "Go forward" 
     forwards:
-# 	jal setupOC1
-# 	jal setupOC3back
-        
         # Kick Start Forward Drive
-        li $a0, 249 # 100% duty
-        li $a1, 249
+        lw $a0, fast # 100% duty
+        lw $a1, fast
         jal forwardOCMs
 
         jal startTMR1
-        li $t0, 10   # Wait for 1 sec.
+        li $t0, 1   # Wait for 0.1 sec.
         waitForTMRFWD:
             jal getTMR1Tenths
             bne $t0, $v0, waitForTMRFWD
@@ -251,17 +253,16 @@ execute:
 	beq $s4, 1, mediumFWD
 	beq $s4, 2, fastFWD
 	slowFWD:
-	    li $a0, 62 # 25% duty
-            li $a1, 62
-
+	    lw $a0, slow # 70% duty
+            lw $a1, slow
             j setFWD
 	mediumFWD:
-	    li $a0, 125 # 50% duty
-            li $a1, 125
+	    lw $a0, medium # 85% duty
+            lw $a1, medium
             j setFWD
 	fastFWD:
-	    li $a0, 249 # 100% duty
-            li $a1, 249
+	    lw $a0, fast # 100% duty
+            lw $a1, fast
 	setFWD:
         jal forwardOCMs
 
@@ -273,8 +274,8 @@ execute:
 # 	jal setupOC3
 
 	# Kick Start Backward Drive
-        li $a0, 249 # 100% duty
-        li $a1, 249
+        lw $a0, fast # 100% duty
+        lw $a1, fast
         jal backwardOCMs
 
         jal startTMR1
@@ -289,16 +290,16 @@ execute:
 	beq $s4, 1, mediumREV
 	beq $s4, 2, fastREV
 	slowREV:
-	    li $a0, 62 # 25% duty
-            li $a1, 62
+	    lw $a0, slow # 25% duty
+            lw $a1, slow
             j setREV
 	mediumREV:
-	    li $a0, 125 # 50% duty
-            li $a1, 125
+	    lw $a0, medium # 50% duty
+            lw $a1, medium
             j setREV
 	fastREV:
-	    li $a0, 249 # 100% duty
-            li $a1, 249
+	    lw $a0, fast # 100% duty
+            lw $a1, fast
 	setREV:
         jal backwardOCMs
 
@@ -322,11 +323,8 @@ execute:
 	j end
    
     continue:
-        jal startTMR1
-        waitForContinue:
-            jal getTMR1Tenths
-            bne $s4, $v0, waitForContinue
-        jal stopTMR1
+        move $a0, $s4
+        jal waitForTime
 
         j end
     
