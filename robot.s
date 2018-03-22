@@ -10,8 +10,18 @@ ROBOMAL_S:
 # The most significant 8 bits must be in Hexadecimal and represent the operation 
 # code followed by zeros. The least significant bits 16 bits are the roboMAL
 # operands in hexadecimal. The instruction must be 32 bits long.
-ROBO_Instruction: .word 0x2A000001, 0x2D00001E, 0x33000000 # , 0x2C000011, 0x2B000011, 0x33000000# , 0x29000000, 0x2A000000, 0x2B000000, 
-# The above instructions tell the robot to go forward, 
+	    		# SQUARE
+			# forward	for 2 sec	turn left		forward for 1 sec	turn left		forward for 1 sec	turn left		forward for 1 sec	turn left		forward for .5 sec
+ ROBO_Instruction: .word # 0x2A000011, 0x2D000014, 0x28000000, 0x2D000004, 0x2A000011, 0x2D00000A, 0x28000000, 0x2D000004, 0x2A000011, 0x2D00000A, 0x28000000, 0x2D000004, 0x2A000011, 0x2D00000A, 0x28000000, 0x2D000004, 0x2A000011, 0x2D000004, 
+# 			# TRIANGLE
+# 		  	# forward for 1 sec	sharp turn left		forward 1 sec		sharp turn left		forward for 1 sec	sharp turn left		forward for 1 sec	
+# 		  .word 0x2A000011, 0x2D00000A, 0x28000000, 0x2D000006, 0x2A000011, 0x2D00000A, 0x28000000, 0x2D000006, 0x2A000011, 0x2D00000A, 0x28000000, 0x2D000006, 0x2A000011, 0x2D00000A 
+# 			# Circle
+# 		  .word 0x2E000000, 0x2D000020, 0x2A000011, 0x2D00000A
+		  # Figure 8
+		  .word 0x2A000011, 0x2D00000A,0x2F000000, 0x2D00001E, 0x2E000000, 0x2D00001E, 0x2A000011, 0x2D00000A, 0x2F000000, 0x2D00001E, 0x33000000
+		  
+ # The above instructions tell the robot to go forward, 
 # continue the last operation for approximately 30 tenths of a second (3 sec), 
 # then halt the program.
     
@@ -201,6 +211,8 @@ execute:
     
 
     # Robot Control Instructions (RCI):
+    beq $s3, 0x2E00, circleleft
+    beq $s3, 0x2F00, circleright
     beq $s3, 0x2800, left
     beq $s3, 0x2900, right
     beq $s3, 0x2A00, forwards
@@ -216,20 +228,20 @@ execute:
 	sw $zero, OC3RS
 	j end
 
-    # "Turn left" - No robot, so LED4 turns on. 
-    left:
+    # "Turn right"
+    right:
         # Need to set DC% of Left Wheel < DC% of Right Wheel
-        lw $a0, medium # Left Wheel
+        lw $a0, slow # Left Wheel
         lw $a1, fast # Right Wheel
         jal forwardOCMs
 	
 	j end
 
-    # "Turn right" - No robot, so LED1 turns on.
-    right:
+    # "Turn left" 
+    left:
         # Need to set DC% of Right Wheel < DC% of Left Wheel
         lw $a0, fast # Left Wheel
-        lw $a1, medium # Right Wheel
+        lw $a1, slow # Right Wheel
         jal forwardOCMs
 
         j end
@@ -321,10 +333,26 @@ execute:
 	j breakrobot
 	
 	j end
-   
+    
+    # degrees / 81 = 1/10 second
     continue:
         move $a0, $s4
         jal waitForTime
+
+        j end
+	
+    circleleft:
+	# Need to set DC% of Right Wheel < DC% of Left Wheel
+        lw $a0, fast # Left Wheel
+        lw $a1, medium # Right Wheel
+        jal forwardOCMs
+
+        j end
+    circleright:
+	# Need to set DC% of Right Wheel < DC% of Left Wheel
+        lw $a0, medium # Left Wheel
+        lw $a1, fast # Right Wheel
+        jal forwardOCMs
 
         j end
     
